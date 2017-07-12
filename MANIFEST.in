@@ -1,0 +1,2 @@
+include versioneer.py
+include MyDatabase/_version.py
