@@ -1,2 +1,2 @@
 include versioneer.py
-include MyDatabase/_version.py
+include VoxCeleb/_version.py
