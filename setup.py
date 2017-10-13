@@ -45,7 +45,7 @@ setup(
     },
     include_package_data=True,
     install_requires=[
-        'pyannote.database >= 0.11.2',
+        'pyannote.database >= 1.1',
         'pyannote.parser >= 0.6.5',
     ],
     classifiers=[
@@ -57,6 +57,7 @@ setup(
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
         "Topic :: Scientific/Engineering"
     ],
     entry_points="""
