@@ -1,3 +1,8 @@
+### Version 0.2 (2017-11-08)
+
+  - feat: add protocols based on pre-segmented audio files
+  - doc: add usage instructions
+
 ### Version 0.1.2 (2017-10-14)
 
   - feat: add verification and identification protocols
