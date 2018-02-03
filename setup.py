@@ -3,7 +3,7 @@
 
 # The MIT License (MIT)
 #
-# Copyright (c) 2017 CNRS
+# Copyright (c) 2017-2018 CNRS
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'pyannote.core >= 1.2',
-        'pyannote.database >= 1.1',
+        'pyannote.database >= 1.2',
         'pandas >= 0.20.1'
     ],
     classifiers=[
@@ -54,8 +54,6 @@ setup(
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
