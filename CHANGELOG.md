@@ -1,3 +1,9 @@
+### Version 0.2.1 (2018-02-03)
+
+  - fix: remove reference to faulty files
+  - setup: drop Python 2 support
+  - setup: switch to pyannote.database 1.2
+
 ### Version 0.2 (2017-11-08)
 
   - feat: add protocols based on pre-segmented audio files
