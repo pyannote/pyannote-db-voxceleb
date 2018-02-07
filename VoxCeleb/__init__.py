@@ -3,7 +3,7 @@
 
 # The MIT License (MIT)
 
-# Copyright (c) 2017 CNRS
+# Copyright (c) 2017-2018 CNRS
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@ from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
-import warnings
 import pandas as pd
 import os.path as op
 from pyannote.core import Segment, Timeline, Annotation
@@ -103,9 +102,9 @@ class VerificationVoxCeleb1(SpeakerVerificationProtocol):
             try:
                 row = data.ix[model_id]
             except KeyError as e:
-                file_id = model_id.split('/')[1][:-8]
-                msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
-                warnings.warn(msg.format(file_id=file_id))
+                # file_id = model_id.split('/')[1][:-8]
+                # msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
+                # warnings.warn(msg.format(file_id=file_id))
                 continue
 
             uri = model_id
@@ -143,17 +142,17 @@ class VerificationVoxCeleb1(SpeakerVerificationProtocol):
             try:
                 _ = data.ix[model_id]
             except KeyError as e:
-                file_id = model_id.split('/')[1][:-8]
-                msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
-                warnings.warn(msg.format(file_id=file_id))
+                # file_id = model_id.split('/')[1][:-8]
+                # msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
+                # warnings.warn(msg.format(file_id=file_id))
                 continue
 
             try:
                 row = data.ix[trial.test]
             except KeyError as e:
-                file_id = trial.test.split('/')[1][:-8]
-                msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
-                warnings.warn(msg.format(file_id=file_id))
+                # file_id = trial.test.split('/')[1][:-8]
+                # msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
+                # warnings.warn(msg.format(file_id=file_id))
                 continue
 
             uri = trial.test
@@ -229,9 +228,9 @@ class VerificationVoxCeleb1_Whole(SpeakerVerificationProtocol):
             try:
                 row = data.ix[model_id]
             except KeyError as e:
-                file_id = model_id.split('/')[1][:-8]
-                msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
-                warnings.warn(msg.format(file_id=file_id))
+                # file_id = model_id.split('/')[1][:-8]
+                # msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
+                # warnings.warn(msg.format(file_id=file_id))
                 continue
 
             uri = row.uri
@@ -269,17 +268,17 @@ class VerificationVoxCeleb1_Whole(SpeakerVerificationProtocol):
             try:
                 _ = data.ix[model_id]
             except KeyError as e:
-                file_id = model_id.split('/')[1][:-8]
-                msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
-                warnings.warn(msg.format(file_id=file_id))
+                # file_id = model_id.split('/')[1][:-8]
+                # msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
+                # warnings.warn(msg.format(file_id=file_id))
                 continue
 
             try:
                 row = data.ix[trial.test]
             except KeyError as e:
-                file_id = trial.test.split('/')[1][:-8]
-                msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
-                warnings.warn(msg.format(file_id=file_id))
+                # file_id = trial.test.split('/')[1][:-8]
+                # msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
+                # warnings.warn(msg.format(file_id=file_id))
                 continue
 
             uri = row.uri
