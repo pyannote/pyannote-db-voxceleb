@@ -1,3 +1,7 @@
+### Version 0.2.2 (2018-02-07)
+
+  - chore: remove 'duplicate' warnings
+
 ### Version 0.2.1 (2018-02-03)
 
   - fix: remove reference to faulty files
