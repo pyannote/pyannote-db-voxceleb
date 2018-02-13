@@ -321,14 +321,6 @@ class IdentificationVoxCeleb1(SpeakerIdentificationProtocol):
 
             yield current_file
 
-    def dev_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define a development set.')
-
-    def tst_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define a test set.')
-
     def common_enrol_iter(self):
 
         data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
@@ -397,6 +389,33 @@ class IdentificationVoxCeleb1(SpeakerIdentificationProtocol):
     def tst_try_iter(self):
         return self._xxx_try_iter('tst')
 
+    def _xxx_iter(self, subset):
+
+        for current_trial in self._xxx_try_iter(subset):
+
+            annotated = current_trial['try_with']
+            uri = current_trial['uri']
+            annotation = Annotation(uri=uri)
+            label = current_trial['reference']
+            for s, segment in enumerate(annotated):
+                annotation[segment, s] = label
+
+            yield {
+                'database': 'VoxCeleb',
+                'uri': uri,
+                'annotated': annotated,
+                'annotation': annotation
+            }
+
+    # shouldn't be used for speaker identification experiments
+    # this is here just for convenience to iterate over all trial files
+    def dev_iter(self):
+        return self._xxx_iter('dev')
+
+    # shouldn't be used for speaker identification experiments
+    # this is here just for convenience to iterate over all trial files
+    def tst_iter(self):
+        return self._xxx_iter('tst')
 
 
 class IdentificationVoxCeleb1_Whole(SpeakerIdentificationProtocol):
