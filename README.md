@@ -44,16 +44,15 @@ $ pip install pyannote.db.voxceleb
 
 ### Speaker verification protocol
 
-
 ```python
 >>> from pyannote.database import get_protocol
 >>> protocol = get_protocol('VoxCeleb.SpeakerVerification.VoxCeleb1')
 ```
 
-First, one can use `protocol.development` generator to train the background model.
+First, one can use `protocol.train` generator to train the background model.
 
 ```python
->>> for training_file in protocol.development():
+>>> for training_file in protocol.train():
 ...
 ...    uri = training_file['uri']
 ...    print('Current filename is {0}.'.format(uri))
@@ -132,6 +131,16 @@ Use speech between t=0.0s and t=6.8s for trial.
 Compare to model "Eartha_Kitt/x6uYqmx31kE_0000001".
 This is a target trial.
 ```
+
+This protocol implements the one described in the VoxCeleb paper:
+> For verification, all POIs whose name starts with an ‘E’ are reserved for
+> testing, since this gives a good balance of male and female speakers. These
+> POIs are not used for training the network, and are only used at test time.
+
+Suprisingly, this protocol does not provide any development (aka validation)
+set. Therefore, we also propose a small variation of this protocol that keeps
+the same test set but reserves POIs whose name starts with 'U', 'V' or 'W' for
+validation (41 people, with a good male/female balance). It is called `VoxCeleb.SpeakerVerification.VoxCeleb1_UVW`.
 
 ### Speaker identification protocol
 
