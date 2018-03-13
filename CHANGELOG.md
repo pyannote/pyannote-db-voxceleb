@@ -1,3 +1,8 @@
+### Version 0.3 (2018-03-13)
+
+  - BREAKING: rename 'development' to 'train' in VoxCeleb.SpeakerVerification.VoxCeleb1
+  - feat: add new VoxCeleb.SpeakerVerification.VoxCeleb1_UVW verification protocol
+
 ### Version 0.2.2 (2018-02-07)
 
   - chore: remove 'duplicate' warnings
