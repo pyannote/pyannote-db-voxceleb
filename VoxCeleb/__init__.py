@@ -43,58 +43,49 @@ class VerificationVoxCeleb1(SpeakerVerificationProtocol):
 
     def _xxx_iter(self, subset):
 
+        if not isinstance(subset, list):
+            subsets = [subset]
+        else:
+            subsets = subset
+
         data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
         data_csv = op.join(data_dir, 'voxceleb1.csv')
+        data = pd.read_csv(data_csv, index_col=['segment'])
+        data = data.groupby('verification')
 
         # segment                          uri                      start end  speaker      verification identification
         # A.J._Buckley/1zcIwhmdeo4_0000001 A.J._Buckley/1zcIwhmdeo4 14.7  22.8 A.J._Buckley dev          trn
 
-        data = pd.read_csv(data_csv, index_col=['segment'])
-        data = data.groupby('verification').get_group(subset)
+        for subset in subsets:
 
-        for uri, datum in data.iterrows():
+            subset_data = data.get_group(subset)
 
-            annotation = Annotation(uri=uri)
-            segment = Segment(0., datum.end - datum.start)
-            annotation[segment] = datum.speaker
+            for uri, datum in subset_data.iterrows():
 
-            annotated = annotation.get_timeline()
+                annotation = Annotation(uri=uri)
+                segment = Segment(0., datum.end - datum.start)
+                annotation[segment] = datum.speaker
 
-            current_file = {
-                'uri': uri,
-                'database': 'VoxCeleb',
-                'annotation': annotation,
-                'annotated': annotated,
-            }
+                annotated = annotation.get_timeline()
 
-            yield current_file
+                current_file = {
+                    'uri': uri,
+                    'database': 'VoxCeleb',
+                    'annotation': annotation,
+                    'annotated': annotated,
+                }
 
-    def trn_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define a training set. '
-            'Use developement set instead.')
+                yield current_file
 
-    def dev_iter(self):
-        return self._xxx_iter('dev')
-
-    def tst_iter(self):
-        return self._xxx_iter('tst')
-
-    def trn_enrol_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define a training set.')
-
-    def dev_enrol_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define trials on the development set.')
-
-    def tst_enrol_iter(self):
+    def _xxx_enrol_iter(self, subset):
 
         data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
         data_csv = op.join(data_dir, 'voxceleb1.csv')
         data = pd.read_csv(data_csv, index_col=['segment'])
 
-        trial_csv = op.join(data_dir, 'voxceleb1.verification.test.csv')
+        trial_csv = op.join(
+            data_dir,
+            'voxceleb1.verification.{subset}.csv'.format(subset=subset))
         trials = pd.read_csv(trial_csv)
 
         for model_id in trials['enrolment'].unique():
@@ -118,21 +109,15 @@ class VerificationVoxCeleb1(SpeakerVerificationProtocol):
 
             yield current_enrolment
 
-    def trn_try_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define a training set.')
-
-    def dev_try_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define trials on the development set.')
-
-    def tst_try_iter(self):
+    def _xxx_try_iter(self, subset):
 
         data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
         data_csv = op.join(data_dir, 'voxceleb1.csv')
         data = pd.read_csv(data_csv, index_col=['segment'])
 
-        trial_csv = op.join(data_dir, 'voxceleb1.verification.test.csv')
+        trial_csv = op.join(
+            data_dir,
+            'voxceleb1.verification.{subset}.csv'.format(subset=subset))
         trials = pd.read_csv(trial_csv)
 
         for _, trial in trials.iterrows():
@@ -169,58 +154,103 @@ class VerificationVoxCeleb1(SpeakerVerificationProtocol):
 
             yield current_trial
 
+    # TRAIN
+
+    def trn_iter(self):
+        return self._xxx_iter(['trn', 'dev'])
+
+    def trn_enrol_iter(self):
+        raise NotImplementedError(
+            'This protocol does not define trials on the training set.')
+
+    def trn_try_iter(self):
+        raise NotImplementedError(
+            'This protocol does not define trials on the training set.')
+
+    # DEVELOPMENT
+
+    def dev_iter(self):
+        raise NotImplementedError(
+            'This protocol does not define a development set.')
+
+    def dev_enrol_iter(self):
+        raise NotImplementedError(
+            'This protocol does not define a development set.')
+
+    def dev_try_iter(self):
+        raise NotImplementedError(
+            'This protocol does not define a development set.')
+
+    # TEST
+
+    def tst_iter(self):
+        return self._xxx_iter('tst')
+
+    def tst_enrol_iter(self):
+        return self._xxx_enrol_iter('tst')
+
+    def tst_try_iter(self):
+        return self._xxx_try_iter('tst')
+
+
+class VerificationVoxCeleb1WithDevelopment(VerificationVoxCeleb1):
+
+        def trn_iter(self):
+            return self._xxx_iter('trn')
+
+        def dev_iter(self):
+            return self._xxx_iter('dev')
+
+        def dev_enrol_iter(self):
+            return self._xxx_enrol_iter('dev')
+
+        def dev_try_iter(self):
+            return self._xxx_try_iter('dev')
+
 
 class VerificationVoxCeleb1_Whole(SpeakerVerificationProtocol):
 
     def _xxx_iter(self, subset):
 
+        if not isinstance(subset, list):
+            subsets = [subset]
+        else:
+            subsets = subset
+
         data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
         data_csv = op.join(data_dir, 'voxceleb1.csv')
         data = pd.read_csv(data_csv, index_col=['segment'])
-        data = data.groupby('verification').get_group(subset)
+        data = data.groupby('verification')
 
-        for uri, rows in data.groupby('uri'):
-            annotation = Annotation(uri=uri)
-            for row in rows.itertuples():
-                segment = Segment(row.start, row.end)
-                annotation[segment] = row.speaker
-            annotated = annotation.get_timeline()
+        for subset in subsets:
 
-            current_file = {
-                'uri': uri,
-                'database': 'VoxCeleb',
-                'annotation': annotation,
-                'annotated': annotated,
-            }
+            subset_data.get_group(subset)
 
-            yield current_file
+            for uri, rows in subset_data.groupby('uri'):
+                annotation = Annotation(uri=uri)
+                for row in rows.itertuples():
+                    segment = Segment(row.start, row.end)
+                    annotation[segment] = row.speaker
+                annotated = annotation.get_timeline()
 
-    def trn_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define a training set. '
-            'Use developement set instead.')
+                current_file = {
+                    'uri': uri,
+                    'database': 'VoxCeleb',
+                    'annotation': annotation,
+                    'annotated': annotated,
+                }
 
-    def dev_iter(self):
-        return self._xxx_iter('dev')
+                yield current_file
 
-    def tst_iter(self):
-        return self._xxx_iter('tst')
-
-    def trn_enrol_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define a training set.')
-
-    def dev_enrol_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define trials on the development set.')
-
-    def tst_enrol_iter(self):
+    def _xxx_enrol_iter(self, subset):
 
         data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
         data_csv = op.join(data_dir, 'voxceleb1.csv')
         data = pd.read_csv(data_csv, index_col=['segment'])
 
-        trial_csv = op.join(data_dir, 'voxceleb1.verification.test.csv')
+        trial_csv = op.join(
+            data_dir,
+            'voxceleb1.verification.{subset}.csv'.format(subset=subset))
         trials = pd.read_csv(trial_csv)
 
         for model_id in trials['enrolment'].unique():
@@ -244,21 +274,15 @@ class VerificationVoxCeleb1_Whole(SpeakerVerificationProtocol):
 
             yield current_enrolment
 
-    def trn_try_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define a training set.')
-
-    def dev_try_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define trials on the development set.')
-
-    def tst_try_iter(self):
+    def _xxx_try_iter(self, subset):
 
         data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
         data_csv = op.join(data_dir, 'voxceleb1.csv')
         data = pd.read_csv(data_csv, index_col=['segment'])
 
-        trial_csv = op.join(data_dir, 'voxceleb1.verification.test.csv')
+        trial_csv = op.join(
+            data_dir,
+            'voxceleb1.verification.{subset}.csv'.format(subset=subset))
         trials = pd.read_csv(trial_csv)
 
         for trial in trials.itertuples():
@@ -294,6 +318,60 @@ class VerificationVoxCeleb1_Whole(SpeakerVerificationProtocol):
             }
 
             yield current_trial
+
+    # TRAIN
+
+    def trn_iter(self):
+        return self._xxx_iter(['trn', 'dev'])
+
+    def trn_enrol_iter(self):
+        raise NotImplementedError(
+            'This protocol does not define trials on the training set.')
+
+    def trn_try_iter(self):
+        raise NotImplementedError(
+            'This protocol does not define trials on the training set.')
+
+    # DEVELOPMENT
+
+    def dev_iter(self):
+        raise NotImplementedError(
+            'This protocol does not define a development set.')
+
+    def dev_enrol_iter(self):
+        raise NotImplementedError(
+            'This protocol does not define a development set.')
+
+    def dev_try_iter(self):
+        raise NotImplementedError(
+            'This protocol does not define a development set.')
+
+    # TEST
+
+    def tst_iter(self):
+        return self._xxx_iter('tst')
+
+    def tst_enrol_iter(self):
+        return self._xxx_enrol_iter('tst')
+
+    def tst_try_iter(self):
+        return self._xxx_try_iter('tst')
+
+
+class VerificationVoxCeleb1_WholeWithDevelopment(VerificationVoxCeleb1_Whole):
+
+        def trn_iter(self):
+            return self._xxx_iter('trn')
+
+        def dev_iter(self):
+            return self._xxx_iter('dev')
+
+        def dev_enrol_iter(self):
+            return self._xxx_enrol_iter('dev')
+
+        def dev_try_iter(self):
+            return self._xxx_try_iter('dev')
+
 
 class IdentificationVoxCeleb1(SpeakerIdentificationProtocol):
 
@@ -543,13 +621,24 @@ http://www.robots.ox.ac.uk/~vgg/data/voxceleb/
         super(VoxCeleb, self).__init__(preprocessors=preprocessors, **kwargs)
 
         self.register_protocol(
-            'SpeakerVerification', 'VoxCeleb1_Whole', VerificationVoxCeleb1_Whole)
+            'SpeakerVerification', 'VoxCeleb1_Whole',
+            VerificationVoxCeleb1_Whole)
 
         self.register_protocol(
             'SpeakerVerification', 'VoxCeleb1', VerificationVoxCeleb1)
 
         self.register_protocol(
-            'SpeakerIdentification', 'VoxCeleb1_Whole', IdentificationVoxCeleb1_Whole)
+            'SpeakerVerification', 'VoxCeleb1_UVW',
+            VerificationVoxCeleb1_WholeWithDevelopment)
+
+        self.register_protocol(
+            'SpeakerVerification', 'VoxCeleb1_UVW',
+            VerificationVoxCeleb1WithDevelopment)
+
+
+        self.register_protocol(
+            'SpeakerIdentification', 'VoxCeleb1_Whole',
+            IdentificationVoxCeleb1_Whole)
 
         self.register_protocol(
             'SpeakerIdentification', 'VoxCeleb1', IdentificationVoxCeleb1)
