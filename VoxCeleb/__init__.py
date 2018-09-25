@@ -31,364 +31,48 @@ from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
+
 import pandas as pd
-import os.path as op
+from pathlib import Path
 from pyannote.core import Segment, Timeline, Annotation
 from pyannote.database import Database
 from pyannote.database.protocol import SpeakerVerificationProtocol
-from pyannote.database.protocol import SpeakerIdentificationProtocol
 
 
-class VerificationVoxCeleb1(SpeakerVerificationProtocol):
+class Base(SpeakerVerificationProtocol):
 
-    def _xxx_iter(self, subset):
+    def xxx_iter(self, voxceleb, subset):
+        """Iterate on VoxCeleb files
 
-        if not isinstance(subset, list):
-            subsets = [subset]
-        else:
-            subsets = subset
+        Each file is yielded as a dictionary with the following keys:
 
-        data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
-        data_csv = op.join(data_dir, 'voxceleb1.csv')
-        data = pd.read_csv(data_csv, index_col=['segment'])
-        data = data.groupby('verification')
+        ['uri'] (`str`)
+            Unique file identifier.
 
-        # segment                          uri                      start end  speaker      verification identification
-        # A.J._Buckley/1zcIwhmdeo4_0000001 A.J._Buckley/1zcIwhmdeo4 14.7  22.8 A.J._Buckley dev          trn
 
-        for subset in subsets:
+        Parameters
+        ----------
+        voxceleb : {1, 2}
+            VoxCeleb1 or VoxCeleb2
+        subset : {'dev', 'tst'}
+            Developement or test subset.
+        """
 
-            subset_data = data.get_group(subset)
+        # load durations
+        path = Path(__file__).parent / 'data'
+        path = path / f'vox{voxceleb:d}_{subset}_duration.txt.gz'
+        content = pd.read_table(path, names=['uri', 'duration'],
+                                index_col='uri', delim_whitespace=True)
 
-            for uri, datum in subset_data.iterrows():
+        for uri, duration in content.itertuples():
 
-                annotation = Annotation(uri=uri)
-                segment = Segment(0., datum.end - datum.start)
-                annotation[segment] = datum.speaker
-
-                annotated = annotation.get_timeline()
-
-                current_file = {
-                    'uri': uri,
-                    'database': 'VoxCeleb',
-                    'annotation': annotation,
-                    'annotated': annotated,
-                }
-
-                yield current_file
-
-    def _xxx_enrol_iter(self, subset):
-
-        data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
-        data_csv = op.join(data_dir, 'voxceleb1.csv')
-        data = pd.read_csv(data_csv, index_col=['segment'])
-
-        trial_csv = op.join(
-            data_dir,
-            'voxceleb1.verification.{subset}.csv'.format(subset=subset))
-        trials = pd.read_csv(trial_csv)
-
-        for model_id in trials['enrolment'].unique():
-
-            try:
-                row = data.ix[model_id]
-            except KeyError as e:
-                # file_id = model_id.split('/')[1][:-8]
-                # msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
-                # warnings.warn(msg.format(file_id=file_id))
-                continue
-
-            uri = model_id
-            segment = Segment(0., row.end - row.start)
-            current_enrolment = {
-                'database': 'VoxCeleb',
-                'uri': uri,
-                'model_id': model_id,
-                'enrol_with': Timeline(uri=uri, segments=[segment]),
-            }
-
-            yield current_enrolment
-
-    def _xxx_try_iter(self, subset):
-
-        data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
-        data_csv = op.join(data_dir, 'voxceleb1.csv')
-        data = pd.read_csv(data_csv, index_col=['segment'])
-
-        trial_csv = op.join(
-            data_dir,
-            'voxceleb1.verification.{subset}.csv'.format(subset=subset))
-        trials = pd.read_csv(trial_csv)
-
-        for _, trial in trials.iterrows():
-
-            model_id = trial.enrolment
-
-            try:
-                _ = data.ix[model_id]
-            except KeyError as e:
-                # file_id = model_id.split('/')[1][:-8]
-                # msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
-                # warnings.warn(msg.format(file_id=file_id))
-                continue
-
-            try:
-                row = data.ix[trial.test]
-            except KeyError as e:
-                # file_id = trial.test.split('/')[1][:-8]
-                # msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
-                # warnings.warn(msg.format(file_id=file_id))
-                continue
-
-            uri = trial.test
-            segment = Segment(0., row.end - row.start)
-            reference = trial.trial
-
-            current_trial = {
-                'database': 'VoxCeleb',
-                'uri': uri,
-                'try_with': Timeline(uri=uri, segments=[segment]),
-                'model_id': model_id,
-                'reference': bool(reference),
-            }
-
-            yield current_trial
-
-    # TRAIN
-
-    def trn_iter(self):
-        return self._xxx_iter(['trn', 'dev'])
-
-    def trn_enrol_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define trials on the training set.')
-
-    def trn_try_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define trials on the training set.')
-
-    # DEVELOPMENT
-
-    def dev_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define a development set.')
-
-    def dev_enrol_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define a development set.')
-
-    def dev_try_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define a development set.')
-
-    # TEST
-
-    def tst_iter(self):
-        return self._xxx_iter('tst')
-
-    def tst_enrol_iter(self):
-        return self._xxx_enrol_iter('tst')
-
-    def tst_try_iter(self):
-        return self._xxx_try_iter('tst')
-
-
-class VerificationVoxCeleb1WithDevelopment(VerificationVoxCeleb1):
-
-        def trn_iter(self):
-            return self._xxx_iter('trn')
-
-        def dev_iter(self):
-            return self._xxx_iter('dev')
-
-        def dev_enrol_iter(self):
-            return self._xxx_enrol_iter('dev')
-
-        def dev_try_iter(self):
-            return self._xxx_try_iter('dev')
-
-
-class VerificationVoxCeleb1_Whole(SpeakerVerificationProtocol):
-
-    def _xxx_iter(self, subset):
-
-        if not isinstance(subset, list):
-            subsets = [subset]
-        else:
-            subsets = subset
-
-        data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
-        data_csv = op.join(data_dir, 'voxceleb1.csv')
-        data = pd.read_csv(data_csv, index_col=['segment'])
-        data = data.groupby('verification')
-
-        for subset in subsets:
-
-            subset_data.get_group(subset)
-
-            for uri, rows in subset_data.groupby('uri'):
-                annotation = Annotation(uri=uri)
-                for row in rows.itertuples():
-                    segment = Segment(row.start, row.end)
-                    annotation[segment] = row.speaker
-                annotated = annotation.get_timeline()
-
-                current_file = {
-                    'uri': uri,
-                    'database': 'VoxCeleb',
-                    'annotation': annotation,
-                    'annotated': annotated,
-                }
-
-                yield current_file
-
-    def _xxx_enrol_iter(self, subset):
-
-        data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
-        data_csv = op.join(data_dir, 'voxceleb1.csv')
-        data = pd.read_csv(data_csv, index_col=['segment'])
-
-        trial_csv = op.join(
-            data_dir,
-            'voxceleb1.verification.{subset}.csv'.format(subset=subset))
-        trials = pd.read_csv(trial_csv)
-
-        for model_id in trials['enrolment'].unique():
-
-            try:
-                row = data.ix[model_id]
-            except KeyError as e:
-                # file_id = model_id.split('/')[1][:-8]
-                # msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
-                # warnings.warn(msg.format(file_id=file_id))
-                continue
-
-            uri = row.uri
-            segment = Segment(row.start, row.end)
-            current_enrolment = {
-                'database': 'VoxCeleb',
-                'uri': uri,
-                'model_id': model_id,
-                'enrol_with': Timeline(uri=uri, segments=[segment]),
-            }
-
-            yield current_enrolment
-
-    def _xxx_try_iter(self, subset):
-
-        data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
-        data_csv = op.join(data_dir, 'voxceleb1.csv')
-        data = pd.read_csv(data_csv, index_col=['segment'])
-
-        trial_csv = op.join(
-            data_dir,
-            'voxceleb1.verification.{subset}.csv'.format(subset=subset))
-        trials = pd.read_csv(trial_csv)
-
-        for trial in trials.itertuples():
-
-            model_id = trial.enrolment
-
-            try:
-                _ = data.ix[model_id]
-            except KeyError as e:
-                # file_id = model_id.split('/')[1][:-8]
-                # msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
-                # warnings.warn(msg.format(file_id=file_id))
-                continue
-
-            try:
-                row = data.ix[trial.test]
-            except KeyError as e:
-                # file_id = trial.test.split('/')[1][:-8]
-                # msg = '{file_id} marked as duplicate in VoxCeleb 1.1'
-                # warnings.warn(msg.format(file_id=file_id))
-                continue
-
-            uri = row.uri
-            segment = Segment(row.start, row.end)
-            reference = row.trial
-
-            current_trial = {
-                'database': 'VoxCeleb',
-                'uri': uri,
-                'try_with': Timeline(uri=uri, segments=[segment]),
-                'model_id': model_id,
-                'reference': bool(reference),
-            }
-
-            yield current_trial
-
-    # TRAIN
-
-    def trn_iter(self):
-        return self._xxx_iter(['trn', 'dev'])
-
-    def trn_enrol_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define trials on the training set.')
-
-    def trn_try_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define trials on the training set.')
-
-    # DEVELOPMENT
-
-    def dev_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define a development set.')
-
-    def dev_enrol_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define a development set.')
-
-    def dev_try_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define a development set.')
-
-    # TEST
-
-    def tst_iter(self):
-        return self._xxx_iter('tst')
-
-    def tst_enrol_iter(self):
-        return self._xxx_enrol_iter('tst')
-
-    def tst_try_iter(self):
-        return self._xxx_try_iter('tst')
-
-
-class VerificationVoxCeleb1_WholeWithDevelopment(VerificationVoxCeleb1_Whole):
-
-        def trn_iter(self):
-            return self._xxx_iter('trn')
-
-        def dev_iter(self):
-            return self._xxx_iter('dev')
-
-        def dev_enrol_iter(self):
-            return self._xxx_enrol_iter('dev')
-
-        def dev_try_iter(self):
-            return self._xxx_try_iter('dev')
-
-
-class IdentificationVoxCeleb1(SpeakerIdentificationProtocol):
-
-    def trn_iter(self):
-
-        data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
-        data_csv = op.join(data_dir, 'voxceleb1.csv')
-        data = pd.read_csv(data_csv, index_col=['segment'])
-        data = data.groupby('identification').get_group('trn')
-
-        for uri, datum in data.iterrows():
+            speaker = uri.split('/')[0]
+            segment = Segment(0, duration)
 
             annotation = Annotation(uri=uri)
-            segment = Segment(0., datum.end - datum.start)
-            annotation[segment] = datum.speaker
+            annotation[segment] = speaker
 
-            annotated = annotation.get_timeline()
+            annotated = Timeline(segments=[segment], uri=uri)
 
             current_file = {
                 'uri': uri,
@@ -399,127 +83,9 @@ class IdentificationVoxCeleb1(SpeakerIdentificationProtocol):
 
             yield current_file
 
-    def common_enrol_iter(self):
-
-        data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
-        data_csv = op.join(data_dir, 'voxceleb1.csv')
-        data = pd.read_csv(data_csv, index_col=['segment'])
-
-        data = data.groupby('identification').get_group('trn')
-
-        for model_id, model_rows in data.groupby('speaker'):
-            uris = []
-            enrol_with = []
-
-            for uri, row in model_rows.iterrows():
-                uris.append(uri)
-                segment = Segment(0., row.end - row.start)
-                enrol_with.append(Timeline(uri=uri, segments=[segment]))
-
-            current_enrolment = {
-                'database': 'VoxCeleb',
-                'model_id': model_id,
-                'uri': uris,
-                'enrol_with': enrol_with
-            }
-
-            yield current_enrolment
-
-    def trn_enrol_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define trials on the training set.')
-
-    def dev_enrol_iter(self):
-        return self.common_enrol_iter()
-
-    def tst_enrol_iter(self):
-        return self.common_enrol_iter()
-
-    def _xxx_try_iter(self, subset):
-
-        data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
-        data_csv = op.join(data_dir, 'voxceleb1.csv')
-        data = pd.read_csv(data_csv, index_col=['segment'])
-
-        data = data.groupby('identification').get_group(subset)
-
-        for uri, trial in data.iterrows():
-
-            reference = trial.speaker
-            segment = Segment(0., trial.end - trial.start)
-
-            current_trial = {
-                'database': 'VoxCeleb',
-                'uri': uri,
-                'try_with': Timeline(uri=uri, segments=[segment]),
-                'reference': reference,
-            }
-
-            yield current_trial
-
-    def trn_try_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define trials on the training set.')
-
-    def dev_try_iter(self):
-        return self._xxx_try_iter('dev')
-
-    def tst_try_iter(self):
-        return self._xxx_try_iter('tst')
-
-    def _xxx_iter(self, subset):
-
-        for current_trial in self._xxx_try_iter(subset):
-
-            annotated = current_trial['try_with']
-            uri = current_trial['uri']
-            annotation = Annotation(uri=uri)
-            label = current_trial['reference']
-            for s, segment in enumerate(annotated):
-                annotation[segment, s] = label
-
-            yield {
-                'database': 'VoxCeleb',
-                'uri': uri,
-                'annotated': annotated,
-                'annotation': annotation
-            }
-
-    # shouldn't be used for speaker identification experiments
-    # this is here just for convenience to iterate over all trial files
-    def dev_iter(self):
-        return self._xxx_iter('dev')
-
-    # shouldn't be used for speaker identification experiments
-    # this is here just for convenience to iterate over all trial files
-    def tst_iter(self):
-        return self._xxx_iter('tst')
-
-
-class IdentificationVoxCeleb1_Whole(SpeakerIdentificationProtocol):
-
     def trn_iter(self):
-
-        data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
-        data_csv = op.join(data_dir, 'voxceleb1.csv')
-        data = pd.read_csv(data_csv, index_col=['segment'])
-        data = data.groupby('identification').get_group('trn')
-
-        for uri, rows in data.groupby('uri'):
-            annotation = Annotation(uri=uri)
-            for row in rows.itertuples():
-                segment = Segment(row.start, row.end)
-                annotation[segment] = row.speaker
-            annotated = annotation.get_timeline()
-
-            current_file = {
-                'uri': uri,
-                'database': 'VoxCeleb',
-                'annotation': annotation,
-                'annotated': annotated,
-            }
-
-            yield current_file
+        raise NotImplementedError(
+            'This protocol does not define a training set.')
 
     def dev_iter(self):
         raise NotImplementedError(
@@ -529,62 +95,45 @@ class IdentificationVoxCeleb1_Whole(SpeakerIdentificationProtocol):
         raise NotImplementedError(
             'This protocol does not define a test set.')
 
-    def common_enrol_iter(self):
+    def xxx_try_iter(self, protocol):
 
-        data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
-        data_csv = op.join(data_dir, 'voxceleb1.csv')
-        data = pd.read_csv(data_csv, index_col=['segment'])
+        # load all VoxCeleb1 durations (dev AND tst)
+        path = Path(__file__).parent / 'data' / 'vox1_dev_duration.txt.gz'
+        dev = pd.read_table(path, names=['uri', 'duration'],
+                            index_col='uri', delim_whitespace=True)
 
-        data = data.groupby('identification').get_group('trn')
+        path = Path(__file__).parent / 'data' / 'vox1_tst_duration.txt.gz'
+        tst = pd.read_table(path, names=['uri', 'duration'],
+                            index_col='uri', delim_whitespace=True)
 
-        for model_id, model_rows in data.groupby('speaker'):
-            uris = []
-            enrol_with = []
-            for uri, rows in model_rows.groupby('uri'):
-                uris.append(uri)
-                segments = []
-                for row in rows.itertuples():
-                    segments.append(Segment(row.start, row.end))
-                enrol_with.append(Timeline(uri=uri, segments=segments))
+        durations = dev.append(tst)
 
-            current_enrolment = {
-                'database': 'VoxCeleb',
-                'model_id': model_id,
-                'uri': uris,
-                'enrol_with': enrol_with
-            }
+        # load tests
+        path = Path(__file__).parent / 'data' / f'verif_{protocol}.txt.gz'
+        trials = pd.read_table(path, delim_whitespace=True,
+                               names=['reference', 'file1', 'file2'])
+        trials.sort_values('file1', inplace=True)
 
-            yield current_enrolment
+        for _, reference, file1, file2 in trials.itertuples():
 
-    def trn_enrol_iter(self):
-        raise NotImplementedError(
-            'This protocol does not define trials on the training set.')
+            uri1 = file1[:-4]
+            duration1 = durations.loc[uri1].item()
+            segment1 = Segment(0, duration1)
 
-    def dev_enrol_iter(self):
-        return self.common_enrol_iter()
-
-    def tst_enrol_iter(self):
-        return self.common_enrol_iter()
-
-    def _xxx_try_iter(self, subset):
-
-        data_dir = op.join(op.dirname(op.realpath(__file__)), 'data')
-        data_csv = op.join(data_dir, 'voxceleb1.csv')
-        data = pd.read_csv(data_csv, index_col=['segment'])
-
-        data = data.groupby('identification').get_group(subset)
-
-        for trial in data.itertuples():
-
-            reference = trial.speaker
-            uri = trial.uri
-            segment = Segment(trial.start, trial.end)
+            uri2 = file2[:-4]
+            duration2 = durations.loc[uri2].item()
+            segment2 = Segment(0, duration2)
 
             current_trial = {
-                'database': 'VoxCeleb',
-                'uri': uri,
-                'try_with': Timeline(uri=uri, segments=[segment]),
                 'reference': reference,
+                'file1': {
+                    'uri': uri1,
+                    'try_with': Timeline(segments=[segment1], uri=uri1)
+                },
+                'file2': {
+                    'uri': uri2,
+                    'try_with': Timeline(segments=[segment2], uri=uri2)
+                }
             }
 
             yield current_trial
@@ -594,51 +143,101 @@ class IdentificationVoxCeleb1_Whole(SpeakerIdentificationProtocol):
             'This protocol does not define trials on the training set.')
 
     def dev_try_iter(self):
-        return self._xxx_try_iter('dev')
+        raise NotImplementedError(
+            'This protocol does not define trials on the development set.')
 
     def tst_try_iter(self):
-        return self._xxx_try_iter('tst')
+        raise NotImplementedError(
+            'This protocol does not define trials on the test set.')
 
+class VoxCeleb1(Base):
+
+    def trn_iter(self):
+        return self.xxx_iter(1, 'dev')
+
+    def tst_iter(self):
+        return self.xxx_iter(1, 'tst')
+
+    def tst_try_iter(self):
+        return self.xxx_try_iter('original')
+
+class VoxCeleb1_X(VoxCeleb1):
+    """Same as VoxCeleb1 except a subset of the training set speakers is
+       kept to build an actual developement set.
+
+       Note: `developement_trial` is not yet implemented.
+    """
+
+    def trn_iter(self):
+        return self.xxx_iter(1, 'xtrn')
+
+    def dev_iter(self):
+        return self.xxx_iter(1, 'xdev')
+
+    # FIXME - add missing list of trial on xdev
+    def dev_try_iter(self):
+        return self.xxx_try_iter('x')
+
+class VoxCeleb2(Base):
+
+    def trn_iter(self):
+        return self.xxx_iter(2, 'dev')
+
+    def tst_iter(self):
+        return self.xxx_iter(2, 'tst')
+
+    def tst_try_iter(self):
+        return self.xxx_try_iter('original')
+
+class VoxCeleb2_Exhaustive(Base):
+
+    def trn_iter(self):
+        return self.xxx_iter(2, 'dev')
+
+    def tst_iter(self):
+        return self.xxx_iter(2, 'tst')
+
+    def tst_try_iter(self):
+        return self.xxx_try_iter('exhaustive')
+
+class VoxCeleb2_Hard(Base):
+
+    def trn_iter(self):
+        return self.xxx_iter(2, 'dev')
+
+    def tst_iter(self):
+        return self.xxx_iter(2, 'tst')
+
+    def tst_try_iter(self):
+        return self.xxx_try_iter('hard')
 
 class VoxCeleb(Database):
-    """VoxCeleb: a large-scale speaker identification dataset
+    """VoxCeleb
 
-Citation
-========
-@InProceedings{Nagrani17,
-  author       = "Nagrani, A. and Chung, J.~S. and Zisserman, A.",
-  title        = "VoxCeleb: a large-scale speaker identification dataset",
-  booktitle    = "INTERSPEECH",
-  year         = "2017",
-}
+    References
+    ----------
+    A. Nagrani, J. S. Chung, A. Zisserman. "VoxCeleb: a large-scale speaker
+    identification dataset". Interspeech 2017.
 
-Webpage
-=======
-http://www.robots.ox.ac.uk/~vgg/data/voxceleb/
+    J. S. Chung, A. Nagrani, A. Zisserman. "VoxCeleb2: Deep Speaker
+    Recognition". Interspeech 2018.
 
+    http://www.robots.ox.ac.uk/~vgg/data/voxceleb/
     """
     def __init__(self, preprocessors={}, **kwargs):
         super(VoxCeleb, self).__init__(preprocessors=preprocessors, **kwargs)
 
-        self.register_protocol(
-            'SpeakerVerification', 'VoxCeleb1_Whole',
-            VerificationVoxCeleb1_Whole)
+        self.register_protocol('SpeakerVerification',
+                               'VoxCeleb1', VoxCeleb1)
 
-        self.register_protocol(
-            'SpeakerVerification', 'VoxCeleb1', VerificationVoxCeleb1)
+        self.register_protocol('SpeakerVerification',
+                               'VoxCeleb1_X', VoxCeleb1_X)
 
-        self.register_protocol(
-            'SpeakerVerification', 'VoxCeleb1_UVW',
-            VerificationVoxCeleb1_WholeWithDevelopment)
+        self.register_protocol('SpeakerVerification',
+                               'VoxCeleb2', VoxCeleb2)
 
-        self.register_protocol(
-            'SpeakerVerification', 'VoxCeleb1_UVW',
-            VerificationVoxCeleb1WithDevelopment)
+        self.register_protocol('SpeakerVerification',
+                               'Exhaustive', VoxCeleb2_Exhaustive)
 
-
-        self.register_protocol(
-            'SpeakerIdentification', 'VoxCeleb1_Whole',
-            IdentificationVoxCeleb1_Whole)
-
-        self.register_protocol(
-            'SpeakerIdentification', 'VoxCeleb1', IdentificationVoxCeleb1)
+        self.register_protocol('SpeakerVerification',
+                               'Hard', VoxCeleb2_Hard)
