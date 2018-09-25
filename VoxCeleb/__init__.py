@@ -161,6 +161,22 @@ class VoxCeleb1(Base):
     def tst_try_iter(self):
         return self.xxx_try_iter('original')
 
+class VoxCeleb1_TrueID(VoxCeleb1):
+
+    def trn_iter(self):
+
+        path = Path(__file__).parent / 'data' / 'vox1_identities.txt.gz'
+        identities = pd.read_table(path, names=['klass', 'speaker'],
+                                   delim_whitespace=True, index_col=['klass'])
+
+        mapping = {klass: speaker
+                   for klass, speaker in identities.itertuples()}
+
+        for current_file in super().trn_iter():
+            current_file['annotation'].rename_labels(mapping, copy=False)
+            yield current_file
+
+
 class VoxCeleb1_X(VoxCeleb1):
     """Same as VoxCeleb1 except a subset of the training set speakers is
        kept to build an actual developement set.
@@ -229,6 +245,9 @@ class VoxCeleb(Database):
 
         self.register_protocol('SpeakerVerification',
                                'VoxCeleb1', VoxCeleb1)
+
+        self.register_protocol('SpeakerVerification',
+                               'VoxCeleb1_TrueID', VoxCeleb1_TrueID)
 
         self.register_protocol('SpeakerVerification',
                                'VoxCeleb1_X', VoxCeleb1_X)
