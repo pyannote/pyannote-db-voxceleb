@@ -180,8 +180,6 @@ class VoxCeleb1_TrueID(VoxCeleb1):
 class VoxCeleb1_X(VoxCeleb1):
     """Same as VoxCeleb1 except a subset of the training set speakers is
        kept to build an actual developement set.
-
-       Note: `developement_trial` is not yet implemented.
     """
 
     def trn_iter(self):
@@ -190,7 +188,6 @@ class VoxCeleb1_X(VoxCeleb1):
     def dev_iter(self):
         return self.xxx_iter(1, 'xdev')
 
-    # FIXME - add missing list of trial on xdev
     def dev_try_iter(self):
         return self.xxx_try_iter('x')
 
