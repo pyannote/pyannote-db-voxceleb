@@ -127,10 +127,12 @@ class Base(SpeakerVerificationProtocol):
             current_trial = {
                 'reference': reference,
                 'file1': {
+                    'database':'VoxCeleb',
                     'uri': uri1,
                     'try_with': Timeline(segments=[segment1], uri=uri1)
                 },
                 'file2': {
+                    'database':'VoxCeleb',
                     'uri': uri2,
                     'try_with': Timeline(segments=[segment2], uri=uri2)
                 }
