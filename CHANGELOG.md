@@ -1,3 +1,7 @@
+### Version 1.0 (2019-02-04)
+
+ - BREAKING: complete rewrite with support for VoxCeleb 1 and 2
+
 ### Version 0.3 (2018-03-13)
 
   - BREAKING: rename 'development' to 'train' in VoxCeleb.SpeakerVerification.VoxCeleb1
