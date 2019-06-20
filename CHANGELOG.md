@@ -1,3 +1,9 @@
+### Version 1.0.1 (2019-06-20)
+
+ - setup: switch to pyannote.database 2.1
+ - setup: switch to pyannote.core 2.2
+ - fix: fix "reference" in VoxCeleb.SpeakerDiarization.VoxCeleb1_X development trials (@juanmc2005)
+
 ### Version 1.0 (2019-02-04)
 
  - BREAKING: complete rewrite with support for VoxCeleb 1 and 2
