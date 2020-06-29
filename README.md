@@ -33,13 +33,36 @@ Please cite the following references if your research relies on this package. Th
 }
 ```
 
-
 ## Installation
+
+* Install this package
 
 ```bash
 $ pip install pyannote.db.voxceleb
 ```
 
+* [Download VoxCeleb dataset](http://www.robots.ox.ac.uk/~vgg/data/voxceleb/) to obtain this kind of directory structure:
+
+```
+/path/to/voxceleb/voxceleb1/dev/wav/id10001/1zcIwhmdeo4/00001.wav
+/path/to/voxceleb/voxceleb1/test/wav/id10270/5r0dWxy17C8/00001.wav
+/path/to/voxceleb/voxceleb2/dev/aac/id00012/21Uxsk56VDQ/00001.m4a
+/path/to/voxceleb/voxceleb2/test/aac/id00017/01dfn2spqyE/00001.m4a
+```
+
+* Update [`~/.pyannote/database.yml`](https://github.com/pyannote/pyannote-database) to look like this:
+
+```yaml
+Databases:
+
+  VoxCeleb:
+    - /path/to/voxceleb/voxceleb1/dev/wav/{uri}.wav
+    - /path/to/voxceleb/voxceleb1/test/wav/{uri}.wav
+    - /path/to/voxceleb/voxceleb2/dev/aac/{uri}.wav
+    - /path/to/voxceleb/voxceleb2/test/aac/{uri}.wav
+```
+
+Note that `m4a` files from VoxCeleb 2 have to be converted to `wav` for [`pyannote.audio`](https://github.com/pyannote/pyannote-audio) to handle them nicely.
 
 ## Usage
 
