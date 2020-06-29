@@ -1,3 +1,7 @@
+### Version 1.0.2 (2020-06-29)
+
+  - setup: switch to pyannote.database 4.0+
+
 ### Version 1.0.1 (2019-06-20)
 
  - setup: switch to pyannote.database 2.1
