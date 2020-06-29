@@ -3,7 +3,7 @@
 
 # The MIT License (MIT)
 #
-# Copyright (c) 2017-2019 CNRS
+# Copyright (c) 2017-2020 CNRS
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,23 +31,19 @@ import versioneer
 from setuptools import setup, find_packages
 
 setup(
-    name='pyannote.db.voxceleb',
+    name="pyannote.db.voxceleb",
     description="VoxCeleb plugin for pyannote-database",
-    author='Hervé Bredin',
-    author_email='bredin@limsi.fr',
+    author="Hervé Bredin",
+    author_email="bredin@limsi.fr",
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     packages=find_packages(),
-    package_data={
-        'VoxCeleb': [
-            'data/*',
-        ],
-    },
+    package_data={"VoxCeleb": ["data/*",],},
     include_package_data=True,
     install_requires=[
-        'pyannote.core >= 2.2',
-        'pyannote.database >= 2.1',
-        'pandas >= 0.20.1'
+        "pyannote.core >= 4.1",
+        "pyannote.database >= 4.0.1",
+        "pandas >= 0.20.1",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -55,12 +51,12 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
-        "Topic :: Scientific/Engineering"
+        "Programming Language :: Python :: 3.8",
+        "Topic :: Scientific/Engineering",
     ],
     entry_points="""
         [pyannote.database.databases]
         VoxCeleb=VoxCeleb:VoxCeleb
-    """
+    """,
 )
