@@ -32,7 +32,7 @@ from ._version import get_versions
 __version__ = get_versions()["version"]
 del get_versions
 
-
+from itertools import chain
 import pandas as pd
 from pathlib import Path
 from pyannote.core import Segment, Timeline, Annotation
@@ -185,7 +185,7 @@ class VoxCeleb1_TrueID(VoxCeleb1):
 
 class VoxCeleb1_X(VoxCeleb1):
     """Same as VoxCeleb1 except a subset of the training set speakers is
-       kept to build an actual developement set.
+    kept to build an actual developement set.
     """
 
     def trn_iter(self):
@@ -231,6 +231,11 @@ class VoxCeleb2_Hard(Base):
         return self.xxx_try_iter("hard")
 
 
+class VoxCeleb_X(VoxCeleb1_X):
+    def trn_iter(self):
+        return chain([self.xxx_iter(1, "xtrn"), self.xxx_iter(2, "dev")])
+
+
 class VoxCeleb(Database):
     """VoxCeleb
 
@@ -263,3 +268,5 @@ class VoxCeleb(Database):
         )
 
         self.register_protocol("SpeakerVerification", "Hard", VoxCeleb2_Hard)
+
+        self.register_protocol("SpeakerVerification", "VoxCeleb_X", VoxCeleb_X)
