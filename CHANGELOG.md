@@ -1,3 +1,7 @@
+### Version 1.1 (2020-14-12)
+
+  - feat: add new VoxCeleb.SpeakerVerification.VoxCeleb_X protocol
+
 ### Version 1.0.2 (2020-06-29)
 
   - setup: switch to pyannote.database 4.0+
