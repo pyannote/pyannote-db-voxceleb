@@ -233,7 +233,8 @@ class VoxCeleb2_Hard(Base):
 
 class VoxCeleb_X(VoxCeleb1_X):
     def trn_iter(self):
-        return chain([self.xxx_iter(1, "xtrn"), self.xxx_iter(2, "dev")])
+        for file in self.xxx_iter(1, "xtrn"): yield file
+        for file in self.xxx_iter(2, "dev"): yield file
 
 
 class VoxCeleb(Database):
