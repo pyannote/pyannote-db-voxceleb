@@ -1,3 +1,7 @@
+### Version 1.2 (2021-01-22)
+
+  - feat: add new VoxCeleb.SpeakerVerification.Debug protocol
+
 ### Version 1.1 (2020-14-12)
 
   - feat: add new VoxCeleb.SpeakerVerification.VoxCeleb_X protocol
