@@ -198,6 +198,27 @@ class VoxCeleb1_X(VoxCeleb1):
         return self.xxx_try_iter("x")
 
 
+class Debug(VoxCeleb1_X):
+    def trn_iter(self):
+        for f, file in enumerate(super().trn_iter()):
+            if f % 1000 == 0:
+                yield file
+
+    def dev_try_iter(self):
+        for t, trial in enumerate(super().dev_try_iter()):
+            if t < 100:
+                yield trial
+            else:
+                break
+
+    def tst_try_iter(self):
+        for t, trial in enumerate(super().tst_try_iter()):
+            if t < 100:
+                yield trial
+            else:
+                break
+
+
 class VoxCeleb2(Base):
     def trn_iter(self):
         return self.xxx_iter(2, "dev")
@@ -233,8 +254,10 @@ class VoxCeleb2_Hard(Base):
 
 class VoxCeleb_X(VoxCeleb1_X):
     def trn_iter(self):
-        for file in self.xxx_iter(1, "xtrn"): yield file
-        for file in self.xxx_iter(2, "dev"): yield file
+        for file in self.xxx_iter(1, "xtrn"):
+            yield file
+        for file in self.xxx_iter(2, "dev"):
+            yield file
 
 
 class VoxCeleb(Database):
@@ -253,6 +276,8 @@ class VoxCeleb(Database):
 
     def __init__(self, **kwargs):
         super(VoxCeleb, self).__init__(**kwargs)
+
+        self.register_protocol("SpeakerVerification", "Debug", Debug)
 
         self.register_protocol("SpeakerVerification", "VoxCeleb1", VoxCeleb1)
 
