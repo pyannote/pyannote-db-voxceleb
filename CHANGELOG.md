@@ -1,3 +1,7 @@
+### Version 1.2.1 (2021-05-31)
+
+  - fix: fix precomputed file durations
+
 ### Version 1.2 (2021-01-22)
 
   - feat: add new VoxCeleb.SpeakerVerification.Debug protocol
