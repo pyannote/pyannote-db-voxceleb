@@ -1,3 +1,8 @@
+### Version 1.3 (2021-08-04)
+
+  - fix: update methods naming convention
+  - feat: release on new tag
+
 ### Version 1.2.1 (2021-05-31)
 
   - fix: fix precomputed file durations
