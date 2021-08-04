@@ -1,4 +1,4 @@
-### Version 1.3 (2021-08-04)
+### Version 1.3.1 (2021-08-04)
 
   - fix: update methods naming convention
   - feat: release on new tag
