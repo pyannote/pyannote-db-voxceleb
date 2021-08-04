@@ -178,7 +178,7 @@ class VoxCeleb1_TrueID(VoxCeleb1):
 
         mapping = {klass: speaker for klass, speaker in identities.itertuples()}
 
-        for current_file in super().trn_iter():
+        for current_file in super().train_iter():
             current_file["annotation"].rename_labels(mapping, copy=False)
             yield current_file
 
@@ -200,19 +200,19 @@ class VoxCeleb1_X(VoxCeleb1):
 
 class Debug(VoxCeleb1_X):
     def train_iter(self):
-        for f, file in enumerate(super().trn_iter()):
+        for f, file in enumerate(super().train_iter()):
             if f % 1000 == 0:
                 yield file
 
     def development_trial_iter(self):
-        for t, trial in enumerate(super().dev_try_iter()):
+        for t, trial in enumerate(super().development_trial_iter()):
             if t < 100:
                 yield trial
             else:
                 break
 
     def test_trial_iter(self):
-        for t, trial in enumerate(super().tst_try_iter()):
+        for t, trial in enumerate(super().test_trial_iter()):
             if t < 100:
                 yield trial
             else:
