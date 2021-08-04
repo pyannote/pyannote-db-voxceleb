@@ -84,13 +84,13 @@ class Base(SpeakerVerificationProtocol):
 
             yield current_file
 
-    def trn_iter(self):
+    def train_iter(self):
         raise NotImplementedError("This protocol does not define a training set.")
 
-    def dev_iter(self):
+    def development_iter(self):
         raise NotImplementedError("This protocol does not define a development set.")
 
-    def tst_iter(self):
+    def test_iter(self):
         raise NotImplementedError("This protocol does not define a test set.")
 
     def xxx_try_iter(self, protocol):
@@ -141,35 +141,35 @@ class Base(SpeakerVerificationProtocol):
 
             yield current_trial
 
-    def trn_try_iter(self):
+    def train_trial_iter(self):
         raise NotImplementedError(
             "This protocol does not define trials on the training set."
         )
 
-    def dev_try_iter(self):
+    def development_trial_iter(self):
         raise NotImplementedError(
             "This protocol does not define trials on the development set."
         )
 
-    def tst_try_iter(self):
+    def test_trial_iter(self):
         raise NotImplementedError(
             "This protocol does not define trials on the test set."
         )
 
 
 class VoxCeleb1(Base):
-    def trn_iter(self):
+    def train_iter(self):
         return self.xxx_iter(1, "dev")
 
-    def tst_iter(self):
+    def test_iter(self):
         return self.xxx_iter(1, "tst")
 
-    def tst_try_iter(self):
+    def test_trial_iter(self):
         return self.xxx_try_iter("original")
 
 
 class VoxCeleb1_TrueID(VoxCeleb1):
-    def trn_iter(self):
+    def train_iter(self):
 
         path = Path(__file__).parent / "data" / "vox1_identities.txt.gz"
         identities = pd.read_table(
@@ -188,30 +188,30 @@ class VoxCeleb1_X(VoxCeleb1):
     kept to build an actual developement set.
     """
 
-    def trn_iter(self):
+    def train_iter(self):
         return self.xxx_iter(1, "xtrn")
 
-    def dev_iter(self):
+    def development_iter(self):
         return self.xxx_iter(1, "xdev")
 
-    def dev_try_iter(self):
+    def development_trial_iter(self):
         return self.xxx_try_iter("x")
 
 
 class Debug(VoxCeleb1_X):
-    def trn_iter(self):
+    def train_iter(self):
         for f, file in enumerate(super().trn_iter()):
             if f % 1000 == 0:
                 yield file
 
-    def dev_try_iter(self):
+    def development_trial_iter(self):
         for t, trial in enumerate(super().dev_try_iter()):
             if t < 100:
                 yield trial
             else:
                 break
 
-    def tst_try_iter(self):
+    def test_trial_iter(self):
         for t, trial in enumerate(super().tst_try_iter()):
             if t < 100:
                 yield trial
@@ -220,40 +220,40 @@ class Debug(VoxCeleb1_X):
 
 
 class VoxCeleb2(Base):
-    def trn_iter(self):
+    def train_iter(self):
         return self.xxx_iter(2, "dev")
 
-    def tst_iter(self):
+    def test_iter(self):
         return self.xxx_iter(2, "tst")
 
-    def tst_try_iter(self):
+    def test_trial_iter(self):
         return self.xxx_try_iter("original")
 
 
 class VoxCeleb2_Exhaustive(Base):
-    def trn_iter(self):
+    def train_iter(self):
         return self.xxx_iter(2, "dev")
 
-    def tst_iter(self):
+    def test_iter(self):
         return self.xxx_iter(2, "tst")
 
-    def tst_try_iter(self):
+    def test_trial_iter(self):
         return self.xxx_try_iter("exhaustive")
 
 
 class VoxCeleb2_Hard(Base):
-    def trn_iter(self):
+    def train_iter(self):
         return self.xxx_iter(2, "dev")
 
-    def tst_iter(self):
+    def test_iter(self):
         return self.xxx_iter(2, "tst")
 
-    def tst_try_iter(self):
+    def test_trial_iter(self):
         return self.xxx_try_iter("hard")
 
 
 class VoxCeleb_X(VoxCeleb1_X):
-    def trn_iter(self):
+    def train_iter(self):
         for file in self.xxx_iter(1, "xtrn"):
             yield file
         for file in self.xxx_iter(2, "dev"):
